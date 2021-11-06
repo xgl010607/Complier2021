@@ -9,7 +9,7 @@ public class ErrorTable {
     private ArrayList<String> errorOut;
     private ArrayList<Integer> errorLine;
     private Integer size;
-
+    private Integer before;
 
     public ErrorTable() throws IOException {
         this.errorOut = new ArrayList<>();
@@ -40,6 +40,18 @@ public class ErrorTable {
         for (int i = 0; i < size; i++) {
             System.out.println(errorLine.get(i) + " " + errorOut.get(i));
             bw.write(errorLine.get(i) + " " + errorOut.get(i) + "\n");
+        }
+    }
+
+    public void stopBefore() {
+        before = size;
+    }
+
+    public void delError() {
+        for (int i = size - before; i > 0; i--) {
+            errorLine.remove(size - 1);
+            errorOut.remove(size - 1);
+            size--;
         }
     }
 }

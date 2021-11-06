@@ -7,7 +7,21 @@ public class Ident {
     private String type = null;
     private Integer dimension = 0;
 
+    public Ident() {
+
+    }
+
     public Ident(Symbol symbol) {
+        this.symbol = symbol;
+        if (symbol != null) {
+            this.type = symbol.getType();
+            this.dimension = symbol.getDimension();
+        } else {
+            type = "notDefine";
+        }
+    }
+
+    public void fillIdent(Symbol symbol) {
         this.symbol = symbol;
         if (symbol != null) {
             this.type = symbol.getType();

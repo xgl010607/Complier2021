@@ -24,4 +24,16 @@ public class CompUnit {
     public void setMainFuncDef(MainFuncDef mainFuncDef) {
         this.mainFuncDef = mainFuncDef;
     }
+
+    public ArrayList<Decl> getDeclLists() {
+        return declLists;
+    }
+
+    public ArrayList<FuncDef> getFuncDefLists() {
+        return funcDefLists;
+    }
+
+    public MainFuncDef getMainFuncDef() {
+        return mainFuncDef;
+    }
 }

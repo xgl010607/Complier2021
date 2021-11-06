@@ -3,6 +3,7 @@ package AST;
 public class BlockItem {
     private Decl decl = null;
     private Stmt stmt = null;
+    private boolean checkReturn = false;
 
     public BlockItem(Decl decl) {
         this.decl = decl;
@@ -10,6 +11,9 @@ public class BlockItem {
 
     public BlockItem(Stmt stmt) {
         this.stmt = stmt;
+        if (stmt.getReturnStmt() != null) {
+            checkReturn = true;
+        }
     }
 
     public Decl getDecl() {
@@ -18,5 +22,9 @@ public class BlockItem {
 
     public Stmt getStmt() {
         return stmt;
+    }
+
+    public boolean isCheckReturn() {
+        return checkReturn;
     }
 }

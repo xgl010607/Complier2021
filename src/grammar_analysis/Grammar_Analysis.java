@@ -6,8 +6,6 @@ import error_handler.ErrorTable;
 import error_handler.Symbol;
 import error_handler.SymbolTable;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -20,14 +18,13 @@ public class Grammar_Analysis {
     private Integer line;
     private Integer lev = 0;
     private final ArrayList<String> output = new ArrayList<>();
-    private ArrayList<Integer> lines;
-    private ErrorTable errorTable;
-    private SymbolTable symbolTable;
+    private final ArrayList<Integer> lines;
+    private final ErrorTable errorTable;
+    private final SymbolTable symbolTable;
     private int listWhilePoint = 0;
 
     public Grammar_Analysis(ArrayList<String> tokens, ArrayList<String> symbols,
-                            ArrayList<Integer> lines, ErrorTable errorTable)
-            throws IOException {
+                            ArrayList<Integer> lines, ErrorTable errorTable) {
         this.tokens = tokens;
         this.symbols = symbols;
         this.lines = lines;
@@ -52,7 +49,6 @@ public class Grammar_Analysis {
             line = lines.get(i);
             //System.out.println(symbol + " " + token);
             i++;
-            System.out.println("get Token,token:" + token +", symbol:" + symbol +", line:" + line);
         }
     }
 
@@ -64,43 +60,46 @@ public class Grammar_Analysis {
         line = lines.get(i - 1);
     }
 
-    public void compUnitParser() throws IOException {
+    public CompUnit compUnitParser() throws IOException {
+        CompUnit compUnit = new CompUnit();
         while (symbol.equals("CONSTTK") ||
                 (symbol.equals("INTTK") && !symbols.get(i + 1).equals("LPARENT"))) {
-            Decl();
+            compUnit.addDecl(DeclParser());
             getToken();
         }
         while (symbol.equals("VOIDTK") ||
                 (symbol.equals("INTTK") && !symbols.get(i).equals("MAINTK"))) {
-            FuncDefParser();
+            compUnit.addFuncDef(FuncDefParser());
             getToken();
         }
-        MainFuncDefParser();
+        compUnit.setMainFuncDef(MainFuncDefParser());
         getToken();
         output.add("<CompUnit>");
+        return compUnit;
     }
 
-    public void Decl() throws IOException {
+    public Decl DeclParser() throws IOException {
         if (symbol.equals("CONSTTK")) {
-            ConstDeclParser();
+            return new Decl(ConstDeclParser());
         } else if (symbol.equals("INTTK")){
-            VarDeclParser();
+            return new Decl(VarDeclParser());
         }
+        return null;
     }
 
-    public void ConstDeclParser() throws IOException {
+    public ConstDecl ConstDeclParser() throws IOException {
         if (symbol.equals("CONSTTK")) {
             getToken();
         }
-        BTypeParser();
+        ConstDecl constDecl = new ConstDecl(BTypeParser());
         getToken();
-        ConstDefParser();
+        constDecl.addConstDef(ConstDefParser());
         Integer lineError = line;
         getToken();
         while(symbol.equals("COMMA")) {
             getToken();
             lineError = line;
-            ConstDefParser();
+            constDecl.addConstDef(ConstDefParser());
             getToken();
         }
         if (symbol.equals("SEMICN")) {
@@ -109,10 +108,11 @@ public class Grammar_Analysis {
             error("i", lineError);
             reChar();
         }
+        return constDecl;
     }
 
-    public void ConstDefParser() throws IOException {
-        IdentParser();
+    public ConstDef ConstDefParser() throws IOException {
+        ConstDef constDef = new ConstDef(IdentParser());
         String name = token;
         Integer dimension = 0;
         Integer lineIdent = line;
@@ -121,7 +121,7 @@ public class Grammar_Analysis {
             dimension++;
             getToken();
             Integer lineError = line;
-            ConstExpParser();
+            constDef.addConstExp(ConstExpParser());
             getToken();
             if (symbol.equals("RBRACK")) {
                 getToken();
@@ -129,23 +129,27 @@ public class Grammar_Analysis {
                 error("k", lineError);
             }
         }
-        symbolTable.addToTable(new Symbol(name, "ConstDef", "int", lev, lineIdent, dimension),lev);
+        Symbol symbolInsert = new Symbol(name, "ConstDef", "int", lev, lineIdent, dimension);
+        symbolTable.addToTable(symbolInsert,lev);
+        constDef.getIdent().fillIdent(symbolInsert);
         if (symbol.equals("ASSIGN")) {
             getToken();
-            ConstInitValParser();
+            constDef.setConstInitVal(ConstInitValParser());
         }
         output.add("<ConstDef>");
+        return constDef;
     }
 
-    public void ConstInitValParser() throws IOException {
+    public ConstInitVal ConstInitValParser() throws IOException {
+        ConstInitVal constInitVal = null;
         if (symbol.equals("LBRACE")) {
             getToken();
             if (!symbol.equals("RBRACE")) {
-                ConstInitValParser();
+                constInitVal = new ConstInitVal(ConstInitValParser());
                 getToken();
                 while(symbol.equals("COMMA")) {
                     getToken();
-                    ConstInitValParser();
+                    constInitVal.addConstInitVal(ConstInitValParser());
                     getToken();
                 }
             }
@@ -153,22 +157,22 @@ public class Grammar_Analysis {
                 output.add("<ConstInitVal>");
             }
         } else {
-            ConstExpParser();
+            constInitVal = new ConstInitVal(ConstExpParser());
             output.add("<ConstInitVal>");
         }
-
+        return constInitVal;
     }
 
-    public void VarDeclParser() throws IOException {
-        BTypeParser();
+    public VarDecl VarDeclParser() throws IOException {
+        VarDecl varDecl = new VarDecl(BTypeParser());
         getToken();
-        VarDefParser();
+        varDecl.addVarDef(VarDefParser());
         Integer lineError = line;
         getToken();
         while(symbol.equals("COMMA")) {
             getToken();
             lineError = line;
-            VarDefParser();
+            varDecl.addVarDef(VarDefParser());
             getToken();
         }
         if (symbol.equals("SEMICN")) {
@@ -177,10 +181,11 @@ public class Grammar_Analysis {
             errorTable.addError("i", lineError);
             reChar();
         }
+        return varDecl;
     }
 
-    public void VarDefParser() throws IOException {
-        IdentParser();
+    public VarDef VarDefParser() throws IOException {
+        VarDef varDef = new VarDef(IdentParser());
         Integer lineIdent = line;
         String name = token;
         Integer dimension = 0;
@@ -189,7 +194,7 @@ public class Grammar_Analysis {
             getToken();
             getToken();
             Integer lineError = line;
-            ConstExpParser();
+            varDef.addConstExp(ConstExpParser());
             getToken();
             if (token.equals("]")) {
                 if (!tokens.get(i).equals("["))
@@ -199,26 +204,30 @@ public class Grammar_Analysis {
                 reChar();
             }
         }
-        symbolTable.addToTable(new Symbol(name, "VarDef", "int", lev, lineIdent, dimension), lev);
+        Symbol symbolInsert = new Symbol(name, "VarDef", "int", lev, lineIdent, dimension);
+        symbolTable.addToTable(symbolInsert, lev);
+        varDef.getIdent().fillIdent(symbolInsert);
         if (tokens.get(i).equals("=")) {
             getToken();
         }
         if (token.equals("=")) {
             getToken();
-            InitValParser();
+            varDef.setInitVal(InitValParser());
         }
         output.add("<VarDef>");
+        return varDef;
     }
 
-    public void InitValParser() throws IOException {
+    public InitVal InitValParser() throws IOException {
+        InitVal initVal = null;
         if (token.equals("{")) {
             getToken();
             if (!token.equals("}")){
-                InitValParser();
+                initVal = new InitVal(InitValParser());
                 getToken();
                 while(token.equals(",")) {
                     getToken();
-                    InitValParser();
+                    initVal.addInitVal(InitValParser());
                     getToken();
                 }
             }
@@ -226,25 +235,28 @@ public class Grammar_Analysis {
 
             }
         } else {
-            ExpParser();
+            initVal = new InitVal(ExpParser());
         }
         output.add("<InitVal>");
+        return initVal;
     }
 
-    public void FuncDefParser() throws IOException {
-        FuncTypeParser();
+    public FuncDef FuncDefParser() throws IOException {
+        // this is for error "g", 'return'
+        FuncDef funcDef = new FuncDef(FuncTypeParser());
         String type = token;
         getToken();
-        Integer lineJ = line;
-        IdentParser();
-        symbolTable.addToTable(new Symbol(token, "FuncDef", type, lev, line, 0), lev);
+        Integer lineJ;
+        funcDef.setIdent(IdentParser());
+        Symbol symbolInsert = new Symbol(token, "FuncDef", type, lev, line, 0);
+        symbolTable.addToTable(symbolInsert, lev);
+        funcDef.getIdent().fillIdent(symbolInsert);
         getToken();
         if (token.equals("(")) {
             getToken();
             lineJ = line;
-            System.out.println("funcdef now token is " + token);
+            // FuncFParams == null 表示 形参是空的，即没有参数
             FuncFParams funcFParams = FuncFParamsParser(symbolTable.getTopSymbol() - 1);
-            System.out.println("形参组是空吗? " + (funcFParams == null));
             if (funcFParams != null) {
                 getToken();
             }
@@ -253,29 +265,31 @@ public class Grammar_Analysis {
             } else {
                 error("j", lineJ);
             }
-            if (BlockParser() == false && type.equals("int")) {
+            funcDef.setBlock(BlockParser());
+            if (funcDef.getFuncType().getType().equals("int") &&
+                    !funcDef.getBlock().isCheckReturn()) {
                 error("g", line);
             }
         }
-
         output.add("<FuncDef>");
+        return funcDef;
     }
 
-    public void FuncTypeParser() {
-        System.out.println("funcType checking! "+ token +" " + symbol);
+    public FuncType FuncTypeParser() {
         if (!symbol.equals("VOIDTK") && !symbol.equals("INTTK")) {
 
         }
         output.add("<FuncType>");
+        return new FuncType(token);
     }
 
-    public boolean BlockParser() throws IOException {
-        boolean checkReturn = false;
+    public Block BlockParser() throws IOException {
+        Block block = new Block();
         if (token.equals("{")) {
             lev++;
             getToken();
             while(!token.equals("}") && i < tokens.size()) {
-                checkReturn = BlockItemParser();
+                block.addBlockItem(BlockItemParser());
                 getToken();
             }
             if (!token.equals("}")) {
@@ -285,155 +299,66 @@ public class Grammar_Analysis {
             lev--;
         }
         output.add("<Block>");
-        return  checkReturn;
+        return block;
     }
 
-    public boolean BlockItemParser() throws IOException {
-        boolean checkReturn = false;
+    public BlockItem BlockItemParser() throws IOException {
         if (symbol.equals("CONSTTK") || symbol.equals("INTTK")) {
-            Decl();
+            return new BlockItem(DeclParser());
         } else {
-            checkReturn = StmtParser();
+            return new BlockItem(StmtParser());
         }
-        return checkReturn;
     }
 
-    public boolean StmtParser() throws IOException {
-        boolean checkReturn = false;
-        Integer lineError = line;
+    public Stmt StmtParser() throws IOException {
+        Stmt stmt = null;
+        Integer lineError;
         switch (symbol) {
             case "IFTK":
-                getToken();
-                if (token.equals("(")) {
-                    getToken();
-                    lineError = line;
-                    CondParser();
-                    getToken();
-                    if (token.equals(")")) {
-                        getToken();
-                    } else {
-                        error("j", lineError);
-                    }
-                    StmtParser();
-                    if (symbols.get(i).equals("ELSETK")) {
-                        getToken();
-                        getToken();
-                        StmtParser();
-                    }
-                }
+                stmt = new Stmt(IfStmtParser());
                 break;
             case "WHILETK":
-                listWhilePoint++;
-                getToken();
-                if (token.equals("(")) {
-                    getToken();
-                    lineError = line;
-                    CondParser();
-                    getToken();
-                    if (token.equals(")")) {
-                        getToken();
-                    } else {
-                        error("j", lineError);
-                    }
-                    StmtParser();
-                }
-                listWhilePoint--;
+                stmt = new Stmt(WhileStmtParser());
                 break;
             case "BREAKTK":
             case "CONTINUETK":
-                lineError = line;
-                getToken();
-                if (!token.equals(";")) {
-                    error("i", lineError);
-                    reChar();
-                }
-                if (listWhilePoint == 0) {
-                    error("m", lineError);
-                }
+                stmt = new Stmt(BreakContStmtParser());
                 break;
             case "RETURNTK":
-                checkReturn = true;
-                int lineReturn = line;
-                lineError = line;
-                getToken();
-                //判断这个函数的类型，如果是void，后面只能跟;
-                //如果是int,就解析Exp再跟;
-                //可以查表,因为重复的元素都加进去了，所以最近的就是那个函数名
-                String type = symbolTable.checkFuncType();
-                if (type.equals("int")) {
-                    lineError = line;
-                    Exp exp = ExpParser();
-                    if (exp != null) {
-                        getToken();
-                    }
-                    if (!token.equals(";")) {
-                        if (token.equals("}")) {
-                            lineError = lineReturn;
-                        }
-                        error("i", lineError);
-                        reChar();
-                    }
-                } else if (type.equals("void")) {
-                    Integer lineBefore = line;
-                    Exp exp = ExpParser();
-                    if (exp != null) {//说明有exp，那么就不匹配。
-                        error("f", lineReturn);
-                        lineError = lineBefore;
-                        getToken();
-                    }
-                    if (!token.equals(";")) {
-                        error("i", lineError);
-                        reChar();
-                    }
-                }
-
+                stmt = new Stmt(ReturnStmtParser());
                 break;
             case "PRINTFTK":
-                int linePrint = line;
-                getToken();
-                if (token.equals("(")) {
-                    getToken();
-                    int count = FormatStringParser().getParaCount();
-                    int temp = 0;
-                    lineError = line;
-                    getToken();
-                    while (token.equals(",")) {
-                        temp++;
-                        getToken();
-                        lineError = line;
-                        ExpParser();
-                        getToken();
-                    }
-                    if (count != temp) {
-                        error("l", linePrint);
-                    }
-                    if (token.equals(")")) {
-                        getToken();
-                    } else {
-                        error("j", lineError);
-                    }
-                    if (!token.equals(";")) {
-                        error("i", lineError);
-                        reChar();
-                    }
-                }
+                stmt = new Stmt(PrintStmtParser());
                 break;
             case "LBRACE":
-                BlockParser();
+                BlockStmt blockStmt = new BlockStmt(BlockParser());
+                stmt = new Stmt(blockStmt);
                 break;
             case "SEMICN":
+                stmt = new Stmt(new ExpStmt(null));
                 break;
             default:
                 lineError = line;
+                int before = i;
+                System.out.println("before is " + before);
+                errorTable.stopBefore();
                 Exp exp = ExpParser();
-                String kind = exp.getKind();
                 getToken();
-                if (token.equals("=")) {//LVAl
+                if (token.equals("=")) {
+                    //说明是LVAL = 类型，退回解析LVAl
+                    while (i != before) {
+                        reChar();
+                    }
+                    errorTable.delError();
+                    LVal lVal = LValParser();
+                    getToken();
+                    String kind = lVal.getKind();
                     if (kind != null && kind.equals("ConstDef")) {
                         error("h", lineError);
                     }
                     getToken();
                     if (symbol.equals("GETINTTK")) {//LVal = getint();
+                        stmt = new Stmt(new LValGetIntStmt(lVal));
                         getToken();
                         if (token.equals("(")) {
                             getToken();
@@ -445,9 +370,11 @@ public class Grammar_Analysis {
                         }
                     } else {// LVal = Exp;
                         lineError = line;
-                        ExpParser();
+                        stmt = new Stmt(new LValExpStmt(lVal, ExpParser()));
                         getToken();
                     }
+                } else {
+                    stmt = new Stmt(new ExpStmt(exp));
                 }
                 if (!token.equals(";")) {
                     error("i", lineError);
@@ -456,7 +383,7 @@ public class Grammar_Analysis {
                 break;
         }
         output.add("<Stmt>");
-        return checkReturn;
+        return stmt;
     }
 
     public LVal LValParser() throws IOException {
@@ -464,7 +391,7 @@ public class Grammar_Analysis {
         IdentParser();
         //查表看它是void 还是 int 数组维度 先看他是否存在
         Integer dimension = 0;
-        Integer lineError = line;
+        Integer lineError;
         //查表，从内往上，看它是否定义了这个ident
         Symbol preSymbol = symbolTable.checkSymbol(token, line);
         System.out.println("checking LVAL" + preSymbol);
@@ -491,65 +418,70 @@ public class Grammar_Analysis {
         return lVal;
     }
 
-    public void CondParser() throws IOException {
-        LOrExpParser();
+    public Cond CondParser() throws IOException {
+        Cond cond = new Cond(LOrExpParser());
         output.add("<Cond>");
+        return cond;
     }
 
-    public void LOrExpParser() throws IOException {
-        LAndExpParser();
+    public LOrExp LOrExpParser() throws IOException {
+        LOrExp lOrExp = new LOrExp(LAndExpParser());
         while(tokens.get(i).equals("||")) {
             output.add("<LOrExp>");
             getToken();
             getToken();
-            LAndExpParser();
+            lOrExp.addLAndExp(LAndExpParser());
         }
         output.add("<LOrExp>");
+        return lOrExp;
     }
 
-    public void LAndExpParser() throws IOException {
-        EqExpParser();
+    public LAndExp LAndExpParser() throws IOException {
+        LAndExp lAndExp = new LAndExp(EqExpParser());
         while(tokens.get(i).equals("&&")) {
             output.add("<LAndExp>");
             getToken();
             getToken();
-            EqExpParser();
+            lAndExp.addEqExp(EqExpParser());
         }
         output.add("<LAndExp>");
+        return lAndExp;
     }
 
-    public void EqExpParser() throws IOException {
-        RelExpParser();
+    public EqExp EqExpParser() throws IOException {
+        EqExp eqExp = new EqExp(RelExpParser());
         while(tokens.get(i).equals("==") || tokens.get(i).equals("!=")) {
             output.add("<EqExp>");
             getToken();
             getToken();
-            RelExpParser();
+            eqExp.addRelExp(RelExpParser());
         }
         output.add("<EqExp>");
+        return eqExp;
     }
 
-    public void RelExpParser() throws IOException {
-        AddExpParser();
+    public RelExp RelExpParser() throws IOException {
+        RelExp relExp = new RelExp(AddExpParser());
         while(tokens.get(i).equals("<") || tokens.get(i).equals(">") ||
                 tokens.get(i).equals("<=") || tokens.get(i).equals(">=")) {
             output.add("<RelExp>");
             getToken();
             getToken();
-            AddExpParser();
+            relExp.addAddExp(AddExpParser());
         }
         output.add("<RelExp>");
+        return relExp;
     }
 
     public FormatString FormatStringParser() {
         if (!symbol.equals("STRCON")) {
             error("a", line);
         }
-        FormatString formatString = new FormatString(token);
-        return formatString;
+        return new FormatString(token);
     }
 
-    public void MainFuncDefParser() throws IOException {
+    public MainFuncDef MainFuncDefParser() throws IOException {
+        MainFuncDef mainFuncDef = null;
         if (symbol.equals("INTTK")) {
             getToken();
             if (symbol.equals("MAINTK")) {
@@ -563,20 +495,22 @@ public class Grammar_Analysis {
                     } else {
                         error("j", lineError);
                     }
-                    if (BlockParser() == false) {
+                    mainFuncDef = new MainFuncDef(BlockParser());
+                    if (!mainFuncDef.getBlock().isCheckReturn()) {
                         error("g", line);
-                    };
+                    }
                 }
             }
         }
-
         output.add("<MainFuncDef>");
+        return mainFuncDef;
     }
 
-    public void IdentParser() {
+    public Ident IdentParser() {
         if (!symbol.equals("IDENFR")) {
             System.out.println("IdentError! " + line + " " + token);
         }
+        return new Ident();
     }
 
     public AddExp AddExpParser() throws IOException {
@@ -657,18 +591,6 @@ public class Grammar_Analysis {
                 funcRParams = FuncRParamsParser();
                 unaryExp.setFuncRParams(funcRParams);//实参
                 System.out.println("获取完毕");
-                /*
-                System.out.println("func Line:" + lineFunc + ", " + func.getName() + " type:" + unaryExp.getType()+", dimension:" + unaryExp.getDimension());
-                System.out.println("函数返回值 " + unaryExp.getType() + unaryExp.getDimension());
-                if (unaryExp.getFuncRParams() != null) {
-                    System.out.println("实参的个数 " + unaryExp.getFuncRParams().getExps().size());
-                    System.out.println("实参的type和维度：" + unaryExp.getFuncRParams().getExps().get(0).getType() +" " + unaryExp.getFuncRParams().getExps().get(0).getDimension());
-                }
-                if (func != null && !funcParams.isEmpty()) {
-                    System.out.println("形参长度: " + func.getParas().size() + ",类型:" + func.getParas().get(0).getType() + ", 维度：" + func.getParas().get(0).getDimension());
-                }
-
-                 */
                 if (funcRParams != null) {
                     getToken();
                 }
@@ -688,9 +610,7 @@ public class Grammar_Analysis {
                     errorType = "d";
                 }
             } else if (funcParams == null) {
-                if (funcRParams != null) {
-                    errorType = "d";
-                }
+                errorType = "d";
             } else {
                 errorType = unaryExp.getFuncRParams().compareRF(funcParams);
             }
@@ -746,9 +666,7 @@ public class Grammar_Analysis {
             Exp exp = ExpParser();
             System.out.println("lineError is " + lineError);
             primaryExp.setExp(exp);
-            if (exp != null) {
-                getToken();
-            }
+            getToken();
             if (!token.equals(")")) {
                 error("j", lineError);
                 reChar();
@@ -861,40 +779,152 @@ public class Grammar_Analysis {
         return constExp;
     }
 
-    public BType BTypeParser() throws IOException {
+    public BType BTypeParser() {
         if (!symbol.equals("INTTK")) {
             return null;
         }
         return new BType(token);
     }
 
+    public IfStmt IfStmtParser() throws IOException {
+        IfStmt ifStmt = null;
+        Integer lineError;
+        getToken();
+        if (token.equals("(")) {
+            getToken();
+            lineError = line;
+            ifStmt = new IfStmt(CondParser());
+            getToken();
+            if (token.equals(")")) {
+                getToken();
+            } else {
+                error("j", lineError);
+            }
+            ifStmt.setStmt(StmtParser());
+            if (symbols.get(i).equals("ELSETK")) {
+                getToken();
+                getToken();
+                ifStmt.setElStmt(StmtParser());
+            }
+        }
+        return ifStmt;
+    }
+
+    public WhileStmt WhileStmtParser() throws IOException {
+        WhileStmt whileStmt = null;
+        Integer lineError;
+        listWhilePoint++;
+        getToken();
+        if (token.equals("(")) {
+            getToken();
+            lineError = line;
+            whileStmt = new WhileStmt(CondParser());
+            getToken();
+            if (token.equals(")")) {
+                getToken();
+            } else {
+                error("j", lineError);
+            }
+            whileStmt.setStmt(StmtParser());
+        }
+        listWhilePoint--;
+        return whileStmt;
+    }
+
+    public BreakContStmt BreakContStmtParser() {
+        BreakContStmt breakContStmt = new BreakContStmt(token);
+        Integer lineError = line;
+        getToken();
+        if (!token.equals(";")) {
+            error("i", lineError);
+            reChar();
+        }
+        if (listWhilePoint == 0) {
+            error("m", lineError);
+        }
+        return breakContStmt;
+    }
+
+    public ReturnStmt ReturnStmtParser() throws IOException {
+        ReturnStmt returnStmt = null;
+        int lineReturn = line;
+        int lineError = line;
+        getToken();
+        //判断这个函数的类型，如果是void，后面只能跟;
+        //如果是int,就解析Exp再跟;
+        //可以查表,因为重复的元素都加进去了，所以最近的就是那个函数名
+        String type = symbolTable.checkFuncType();
+        if (type.equals("int")) {
+            lineError = line;
+            Exp exp = ExpParser();
+            returnStmt = new ReturnStmt(exp);
+            if (exp != null) {
+                getToken();
+            }
+            if (!token.equals(";")) {
+                if (token.equals("}")) {
+                    lineError = lineReturn;
+                }
+                error("i", lineError);
+                reChar();
+            }
+        } else if (type.equals("void")) {
+            Integer lineBefore = line;
+            Exp exp = ExpParser();
+            returnStmt = new ReturnStmt(exp);
+            if (exp != null) {//说明有exp，那么就不匹配。
+                error("f", lineReturn);
+                lineError = lineBefore;
+                getToken();
+            }
+            if (!token.equals(";")) {
+                error("i", lineError);
+                reChar();
+            }
+        }
+        return returnStmt;
+    }
+
+    public PrintStmt PrintStmtParser () throws IOException {
+        PrintStmt printStmt = null;
+        int linePrint = line;
+        int lineError;
+        getToken();
+        if (token.equals("(")) {
+            getToken();
+            printStmt = new PrintStmt(FormatStringParser());
+            int count = printStmt.getFormatString().getParaCount();
+            int temp = 0;
+            lineError = line;
+            getToken();
+            while (token.equals(",")) {
+                temp++;
+                getToken();
+                lineError = line;
+                printStmt.addExp(ExpParser());
+                getToken();
+            }
+            if (count != temp) {
+                error("l", linePrint);
+            }
+            if (token.equals(")")) {
+                getToken();
+            } else {
+                error("j", lineError);
+            }
+            if (!token.equals(";")) {
+                error("i", lineError);
+                reChar();
+            }
+        }
+        return printStmt;
+    }
+
+
+
     public void error(String errorType, Integer lineNow) {
         System.out.println(lineNow + " " + errorType);
         errorTable.addError(errorType, lineNow);
     }
 
-    /*
-    public boolean checkReturn() {
-        boolean errorG = false;
-        reChar();
-        if (token.equals(";")) {
-            reChar();
-            reChar();
-            if (!symbol.equals("RETURNTK")) {
-                errorG = true;
-            }
-            getToken();
-            getToken();
-        } else {
-            reChar();
-            if (!symbol.equals("RETURNTK")) {
-                errorG = true;
-            }
-            getToken();
-        }
-        getToken();
-        return errorG;
-    }
-
-     */
 }

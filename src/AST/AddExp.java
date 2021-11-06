@@ -52,35 +52,6 @@ public class AddExp {
                     type = "compError";
             }
         }
-        /*
-        if (addTimes == 0) {
-            type = mulExp.getType();
-            dimension = mulExp.getDimension();
-        } else {
-            String nextType = mulExp.getType();
-            Integer nextDim = mulExp.getDimension();
-
-            if (type != null) {
-                switch (type) {
-                    case "int":
-                        if (nextType.equals(type) && nextDim == dimension) {
-                            break;
-                        } else {
-                            type = null;
-                        }
-                        break;
-                    case "void"://可能会有void 却使用[]的情况，这种先不考虑
-                        if (!nextType.equals(type)) {
-                            type = null;
-                        }
-                        break;
-                    default:
-                        type = null;
-                }
-            }
-        }
-
-         */
         mulExps.add(mulExp);
         addTimes++;
     }

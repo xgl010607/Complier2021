@@ -66,7 +66,6 @@ public class PhraseAnalysis {
                 checkElse(token);
             }
             orders.add(token.toString());
-            System.out.println("add " + token.toString() + " in line " + lineNow);
         }
         //bw.close();
     }

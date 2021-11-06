@@ -14,20 +14,20 @@ public class Compiler {
     public static void main(String[] args) throws IOException {
         FileReader fr = new FileReader("testfile.txt");
         //FileWriter fw = new FileWriter("output.txt");
-        //BufferedWriter bw = new BufferedWriter(fw);
+        //BufferedWriter bw = new BufferedWriter(fw); this is for GrammarAnalysis
 
-        FileWriter efr = new FileWriter("error.txt");
-        BufferedWriter ebw = new BufferedWriter(efr);
+        FileWriter errorFr = new FileWriter("error.txt");
+        BufferedWriter errorBw = new BufferedWriter(errorFr);// this is for errorHandler
 
         StringBuffer stringBuffer = new StringBuffer();
         ArrayList<String> tokens = new ArrayList<>();
         ArrayList<String> symbols = new ArrayList<>();
         ArrayList<Integer> line = new ArrayList<>();
         ArrayList<Integer> newLine;
-
         ErrorTable errorTable = new ErrorTable();
         Integer i = 1;
 
+        //reading token
         int ch_int;
         while ((ch_int = fr.read()) > 0) {
             char ch = (char) ch_int;
@@ -45,22 +45,10 @@ public class Compiler {
         Grammar_Analysis grammar_analysis = new Grammar_Analysis(tokens, symbols, newLine, errorTable);
         grammar_analysis.grammarAnalysis();
 
-/*
-        for (String s : grammar_analysis.getOutput()) {
-            bw.write(s + "\n");
-        }
-        bw.close();
-
- */
-
-        errorTable.getErrorTable(ebw);
+        errorTable.getErrorTable(errorBw);
         //fw.close();
         fr.close();
-        ebw.close();
-        efr.close();
-        System.out.println();
-        for (int j = 0; j < stringBuffer.length(); j++) {
-            System.out.println(line.get(j) + " " + stringBuffer.charAt(j));
-        }
+        errorBw.close();
+        errorFr.close();
     }
 }

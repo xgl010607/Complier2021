@@ -4,16 +4,19 @@ public class Decl {
     private ConstDecl constDecl;
     private VarDecl varDecl;
 
-    public Decl() {
-        this.constDecl = null;
-        this.varDecl = null;
-    }
-
-    public void setConstDecl(ConstDecl constDecl) {
+    public Decl(ConstDecl constDecl) {
         this.constDecl = constDecl;
     }
 
-    public void setVarDecl(VarDecl varDecl) {
+    public Decl(VarDecl varDecl) {
         this.varDecl = varDecl;
+    }
+
+    public ConstDecl getConstDecl() {
+        return constDecl;
+    }
+
+    public VarDecl getVarDecl() {
+        return varDecl;
     }
 }
