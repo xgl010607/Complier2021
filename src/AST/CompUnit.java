@@ -36,4 +36,10 @@ public class CompUnit {
     public MainFuncDef getMainFuncDef() {
         return mainFuncDef;
     }
+
+    public void visit() {
+        for (Decl decl : declLists) {
+            decl.visit();
+        }
+    }
 }

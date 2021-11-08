@@ -19,4 +19,12 @@ public class Decl {
     public VarDecl getVarDecl() {
         return varDecl;
     }
+
+    public void visit() {
+        if (constDecl != null) {
+            constDecl.visit();
+        } else {
+            varDecl.visit();
+        }
+    }
 }

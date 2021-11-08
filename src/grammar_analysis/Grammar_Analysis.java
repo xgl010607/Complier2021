@@ -22,6 +22,8 @@ public class Grammar_Analysis {
     private final ErrorTable errorTable;
     private final SymbolTable symbolTable;
     private int listWhilePoint = 0;
+    private CompUnit compUnit;
+    private final ArrayList<String> midCode = new ArrayList<>();
 
     public Grammar_Analysis(ArrayList<String> tokens, ArrayList<String> symbols,
                             ArrayList<Integer> lines, ErrorTable errorTable) {
@@ -38,7 +40,11 @@ public class Grammar_Analysis {
 
     public void grammarAnalysis() throws IOException {
         getToken();
-        compUnitParser();
+        compUnit = compUnitParser();
+    }
+
+    public CompUnit getCompUnit() {
+        return compUnit;
     }
 
     public void getToken() {
@@ -136,6 +142,7 @@ public class Grammar_Analysis {
             getToken();
             constDef.setConstInitVal(ConstInitValParser());
         }
+        symbolInsert.setConstDef(constDef);
         output.add("<ConstDef>");
         return constDef;
     }
@@ -214,6 +221,7 @@ public class Grammar_Analysis {
             getToken();
             varDef.setInitVal(InitValParser());
         }
+        symbolInsert.setVarDef(varDef);
         output.add("<VarDef>");
         return varDef;
     }
@@ -271,6 +279,7 @@ public class Grammar_Analysis {
                 error("g", line);
             }
         }
+        symbolInsert.setFuncDef(funcDef);
         output.add("<FuncDef>");
         return funcDef;
     }
@@ -311,7 +320,7 @@ public class Grammar_Analysis {
     }
 
     public Stmt StmtParser() throws IOException {
-        Stmt stmt = null;
+        Stmt stmt;
         Integer lineError;
         switch (symbol) {
             case "IFTK":
@@ -340,7 +349,6 @@ public class Grammar_Analysis {
             default:
                 lineError = line;
                 int before = i;
-                System.out.println("before is " + before);
                 errorTable.stopBefore();
                 Exp exp = ExpParser();
                 getToken();
@@ -394,10 +402,8 @@ public class Grammar_Analysis {
         Integer lineError;
         //查表，从内往上，看它是否定义了这个ident
         Symbol preSymbol = symbolTable.checkSymbol(token, line);
-        System.out.println("checking LVAL" + preSymbol);
         if (preSymbol != null) {
             dimension = preSymbol.getDimension();
-            System.out.println("ident:" + token + ",dimension:" + preSymbol.getDimension() + ",type:" + preSymbol.getType());
         }
         lVal.setIdent(new Ident(preSymbol));
         while(tokens.get(i).equals("[")) {
@@ -412,7 +418,6 @@ public class Grammar_Analysis {
                 reChar();
             }
         }
-        System.out.println("dimension now is " + dimension + ", lVal type is " + lVal.getType());
         lVal.setDimension(dimension);
         output.add("<LVal>");
         return lVal;
@@ -514,11 +519,9 @@ public class Grammar_Analysis {
     }
 
     public AddExp AddExpParser() throws IOException {
-        System.out.println("addExp begin! " + token);
         AddExp addExp = new AddExp();
         MulExp mulExp = MulExpParser();
         if (mulExp == null) {
-            System.out.println("addExp going null ");
             return null;
         }
         addExp.addMulExp(mulExp);
@@ -530,16 +533,13 @@ public class Grammar_Analysis {
             addExp.addMulExp(MulExpParser());
         }
         output.add("<AddExp>");
-        System.out.println("addExp over! " + token);
         return addExp;
     }
 
     public MulExp MulExpParser() throws IOException {
-        System.out.println("mulExp begin! " + token);
         MulExp mulExp = new MulExp();
         UnaryExp unaryExp = UnaryExpParser();
         if (unaryExp == null) {
-            System.out.println("mueExp going null");
             return null;
         }
         mulExp.addUnaryExp(unaryExp);
@@ -551,14 +551,11 @@ public class Grammar_Analysis {
             mulExp.addUnaryExp(UnaryExpParser());
         }
         output.add("<MulExp>");
-        System.out.println("mulExp over!" + token);
         return mulExp;
     }
 
     public UnaryExp UnaryExpParser() throws IOException {
-        System.out.println("unaryExp begin " + token);
         UnaryExp unaryExp = new UnaryExp();
-        System.out.println("token is " + token);
         // UnaryOp
         if (token.equals("+") || token.equals("-") || token.equals("!")) {
             unaryExp.setUnaryOp(UnaryOpParser());
@@ -572,13 +569,10 @@ public class Grammar_Analysis {
             IdentParser();
             //查询类别 这里是在找函数 先看它存不存在
             Symbol func = symbolTable.checkFuncSymbol(token, line, "FuncDef");
-            System.out.println("checking Unary");
             unaryExp.setIdent(new Ident(func));
             //func 为null说明函数不存在
             ArrayList<Symbol> funcParams = null;
             if (func != null) {
-                System.out.println("Line : " + func.getLine() + ",func is " + func.getName());
-                System.out.println("now Line is " +line);
                 funcParams = func.getParas();//函数的形参表
             }
             getToken();
@@ -590,7 +584,6 @@ public class Grammar_Analysis {
                 Integer lineJ = line;
                 funcRParams = FuncRParamsParser();
                 unaryExp.setFuncRParams(funcRParams);//实参
-                System.out.println("获取完毕");
                 if (funcRParams != null) {
                     getToken();
                 }
@@ -614,17 +607,13 @@ public class Grammar_Analysis {
             } else {
                 errorType = unaryExp.getFuncRParams().compareRF(funcParams);
             }
-            System.out.println("ERRORTYPE IS " + errorType);
             if (errorType != null) {
                 error(errorType, lineFunc);
-                System.out.println("putting " + errorType + " in line " + lineFunc);
             }
         } else {
-            System.out.println("Im returning null!");
             return null;
         }
         output.add("<UnaryExp>");
-        System.out.println("unaryExp is over " + token);
         if (unaryExp.getType() == null) {
             unaryExp = null;
         }
@@ -638,7 +627,6 @@ public class Grammar_Analysis {
             return null;
         }
         funcRParams.addExp(exp);
-        System.out.println("tokens的下一个是？" + tokens.get(i));
         while(tokens.get(i).equals(",")) {
             getToken();
             getToken();
@@ -658,13 +646,11 @@ public class Grammar_Analysis {
     }
 
     public PrimaryExp PrimaryExpParser() throws IOException {
-        System.out.println("PrimaryExp begin! " + token);
         PrimaryExp primaryExp = new PrimaryExp();
         if (token.equals("(")) {
             getToken();
             Integer lineError = line;
             Exp exp = ExpParser();
-            System.out.println("lineError is " + lineError);
             primaryExp.setExp(exp);
             getToken();
             if (!token.equals(")")) {
@@ -673,30 +659,23 @@ public class Grammar_Analysis {
             }
         } else if (token.charAt(0) >= '0' && token.charAt(0) <= '9') {
             primaryExp.setNumber(NumberParser());
-            System.out.println("setting number " + token);
         } else if (symbol.equals("IDENFR")) {
             primaryExp.setlVal(LValParser());
         } else {
-            System.out.println("PrimaryExp going null! " + token);
             return null;
         }
         output.add("<PrimaryExp>");
-        System.out.println("PrimaryExp over !" + token);
         return primaryExp;
     }
 
     public Exp ExpParser() throws IOException {
-        System.out.println("Exp begin!"+token);
         Exp exp = new Exp();
         AddExp addExp = AddExpParser();
         if (addExp == null) {
-            System.out.println("Exp going null!");
             return null;
         }
         exp.addAddExp(addExp);
         output.add("<Exp>");
-        System.out.println(token);
-        System.out.println("exp over!" + token);
         return exp;
     }
 
@@ -738,7 +717,6 @@ public class Grammar_Analysis {
         FuncFParam funcFParam = new FuncFParam(bType);
         getToken();
         IdentParser();//函数形参 加表
-        System.out.println("函数形参名字 " + token);
         String name = token;
         Integer dimension = 0;
         Integer lineIdent = line;
@@ -767,9 +745,9 @@ public class Grammar_Analysis {
         Symbol FParam = new Symbol(name, "FuncFParam", type, lev + 1, lineIdent, dimension);
         symbolTable.addParas(funcIndex, FParam);
         symbolTable.addToTable(FParam, lev + 1);
-        System.out.println("加了"+token +",在第 " + (lev+1) +" 个层");
         funcFParam.setIdent(new Ident(FParam));
         output.add("<FuncFParam>");
+        FParam.setFuncFParam(funcFParam);
         return funcFParam;
     }
 

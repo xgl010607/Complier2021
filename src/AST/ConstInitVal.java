@@ -17,4 +17,16 @@ public class ConstInitVal {
     public void addConstInitVal(ConstInitVal constInitVal) {
         constInitVals.add(constInitVal);
     }
+
+    public ArrayList<Integer> getConstInit() {
+        ArrayList<Integer> integers = new ArrayList<>();
+        if (constExp != null) {
+            integers.add(constExp.getConstValue());
+        } else {
+            for (ConstInitVal constInitVal : constInitVals) {
+                integers.addAll(constInitVal.getConstInit());
+            }
+        }
+        return integers;
+    }
 }

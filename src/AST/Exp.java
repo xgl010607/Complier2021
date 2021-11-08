@@ -38,4 +38,8 @@ public class Exp {
     public String getKind() {
         return kind;
     }
+
+    public Integer getConstValue() {
+        return addExp.getConstValue();
+    }
 }

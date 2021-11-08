@@ -1,6 +1,7 @@
 package AST;
 
 import error_handler.Symbol;
+import error_handler.SymbolTable;
 
 import java.util.ArrayList;
 
@@ -59,5 +60,22 @@ public class LVal {
 
     public String getKind() {
         return kind;
+    }
+
+    public Integer getConstValue() {
+        if (ident.getSymbol().getNode() instanceof ConstDef) {
+            ConstDef constDef = (ConstDef) ident.getSymbol().getNode();
+            ArrayList<Integer> arrValues = constDef.getArrValues();
+            if (exps.isEmpty()) {
+                return arrValues.get(0);
+            } else {
+                Integer index = 1;
+                for (Exp exp : exps) {
+                    index *= exp.getConstValue();
+                }
+                return arrValues.get(index);
+            }
+        }
+        return null;
     }
 }

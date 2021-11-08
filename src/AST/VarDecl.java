@@ -13,4 +13,8 @@ public class VarDecl {
     public void addVarDef(VarDef varDef) {
         varDefs.add(varDef);
     }
+
+    public void visit() {
+
+    }
 }

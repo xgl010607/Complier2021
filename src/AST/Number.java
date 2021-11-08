@@ -9,4 +9,8 @@ public class Number {
     public Number(String intConst) {
         IntConst = new Integer(intConst);
     }
+
+    public Integer getIntConst() {
+        return IntConst;
+    }
 }

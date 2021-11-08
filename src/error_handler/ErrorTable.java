@@ -18,7 +18,6 @@ public class ErrorTable {
     }
 
     public void addError(String error, Integer line) {
-        System.out.println("adding " + error + " " + line);
         errorOut.add(error);
         errorLine.add(line);
         size++;

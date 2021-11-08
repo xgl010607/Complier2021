@@ -21,4 +21,11 @@ public class ConstDecl {
     public ArrayList<ConstDef> getConstDefs() {
         return constDefs;
     }
+
+    public void visit() {
+        for (ConstDef constDef : constDefs) {
+            System.out.print("const " + bType.getType() + " ");
+            constDef.visit();
+        }
+    }
 }

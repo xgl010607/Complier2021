@@ -60,4 +60,15 @@ public class PrimaryExp {
     public String getKind() {
         return kind;
     }
+
+    public Integer getConstValue() {
+        if (number != null) {
+            return number.getIntConst();
+        } else if (exp != null) {
+            return exp.getConstValue();
+        } else if (lVal != null) {
+            return lVal.getConstValue();
+        }
+        return null;
+    }
 }

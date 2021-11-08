@@ -86,4 +86,11 @@ public class UnaryExp {
     public String getKind() {
         return kind;
     }
+
+    public Integer getConstValue() {
+        if (primaryExp != null) {
+            return primaryExp.getConstValue();
+        }
+        return null;
+    }
 }

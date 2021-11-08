@@ -1,5 +1,10 @@
 package error_handler;
 
+import AST.ConstDef;
+import AST.FuncDef;
+import AST.FuncFParam;
+import AST.VarDef;
+
 import java.util.ArrayList;
 
 public class Symbol {
@@ -11,6 +16,11 @@ public class Symbol {
     private Integer line;//行数
     private ArrayList<Symbol> paras;//参数列，存的type
 
+    private ConstDef constDef;
+    private VarDef varDef;
+    private FuncDef funcDef;
+    private FuncFParam funcFParam;
+
     public Symbol(String name, String kind, String type, Integer lev, Integer line, Integer dimension) {
         this.name = name;
         this.kind = kind;
@@ -21,6 +31,21 @@ public class Symbol {
         this.paras = new ArrayList<>();
     }
 
+    public void setConstDef(ConstDef constDef) {
+        this.constDef = constDef;
+    }
+
+    public void setVarDef(VarDef varDef) {
+        this.varDef = varDef;
+    }
+
+    public void setFuncDef(FuncDef funcDef) {
+        this.funcDef = funcDef;
+    }
+
+    public void setFuncFParam(FuncFParam funcFParam) {
+        this.funcFParam = funcFParam;
+    }
 
     public void addPara(Symbol symbol) {
             paras.add(symbol);
@@ -52,6 +77,19 @@ public class Symbol {
 
     public Integer getLine() {
         return line;
+    }
+
+    public Object getNode() {
+        if (constDef != null) {
+            return constDef;
+        } else if (varDef != null) {
+            return varDef;
+        } else if (funcDef != null) {
+            return funcDef;
+        } else if (funcFParam != null) {
+            return funcFParam;
+        }
+        return null;
     }
 }
 

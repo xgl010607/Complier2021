@@ -10,4 +10,8 @@ public class ConstExp {
     public AddExp getAddExp() {
         return addExp;
     }
+
+    public Integer getConstValue() {
+        return addExp.getConstValue();
+    }
 }

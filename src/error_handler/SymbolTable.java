@@ -109,7 +109,6 @@ public class SymbolTable {
     public String checkFuncType() {
         for (int i = topSymbol - 1; i >= 0; i--) {
             Symbol symbol = symbols.get(i);
-            System.out.println("funcdef " + symbol.getKind() + " " + symbol.getLine());
             if (symbol.getKind().equals("FuncDef")) {
                 return symbol.getType();
             }

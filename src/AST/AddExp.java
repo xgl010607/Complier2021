@@ -79,4 +79,22 @@ public class AddExp {
     public String getKind() {
         return kind;
     }
+
+    public Integer getConstValue() {
+        Integer ori = mulExps.get(0).getConstValue();
+        for (int i = 0; i < ops.size(); i++) {
+            String op = ops.get(i);
+            Integer x = mulExps.get(i + 1).getConstValue();
+            switch (op) {
+                case "+" :
+                    ori += x;
+                    break;
+                case "-" :
+                    ori -= x;
+                    break;
+                default:
+            }
+        }
+        return ori;
+    }
 }

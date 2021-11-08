@@ -20,15 +20,12 @@ public class FuncRParams {
     public String compareRF(ArrayList<Symbol> funcParams) {
         int sizeDefine = funcParams.size();
         int sizeRParams = exps.size();
-        System.out.println("sizeDefine:" + sizeDefine+",sizeRParams:" + sizeRParams);
         if (sizeRParams != sizeDefine) {
             return "d";
         } else {
             for (int i = 0; i < sizeDefine; i++) {
                 Exp exp = exps.get(i);
                 Symbol symbol = funcParams.get(i);
-                System.out.println("Line "+ symbol.getLine() + ": "+symbol. getName()+" "+ symbol.getType()+" " + symbol.getDimension());
-                System.out.println(exp.getType() + exp.getDimension());
                 if (exp.getType() == null ) {
                     return "e";
                 }

@@ -55,34 +55,7 @@ public class MulExp {
                     type = "compError";
             }
         }
-        /*
-        if (mulTimes == 0) {
-            type = unaryExp.getType();
-            dimension = unaryExp.getDimension();
-        } else {
-            String nextType = unaryExp.getType();
-            Integer nextDim = unaryExp.getDimension();
-            if (type != null) {
-                switch (type) {
-                    case "int":
-                        if (nextType.equals(type) && nextDim == dimension) {
-                            break;
-                        } else {
-                            type = null;
-                        }
-                        break;
-                    case "void"://可能会有void 却使用[]的情况，这种先不考虑
-                        if (!nextType.equals(type)) {
-                            type = null;
-                        }
-                        break;
-                    default:
-                        type = null;
-                }
-            }
-        }
 
-         */
         unaryExps.add(unaryExp);
         mulTimes++;
     }
@@ -109,5 +82,26 @@ public class MulExp {
 
     public String getKind() {
         return kind;
+    }
+
+    public Integer getConstValue() {
+        Integer ori = unaryExps.get(0).getConstValue();
+        for (int i = 0; i < ops.size(); i++) {
+            String op = ops.get(i);
+            Integer x = unaryExps.get(i + 1).getConstValue();
+            switch (op) {
+                case "*" :
+                    ori *= x;
+                    break;
+                case "/" :
+                    ori /= x;
+                    break;
+                case "%" :
+                    ori %= x;
+                    break;
+                default:
+            }
+        }
+        return ori;
     }
 }

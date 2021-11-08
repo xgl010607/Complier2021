@@ -4,9 +4,12 @@ import org.omg.PortableInterceptor.SUCCESSFUL;
 import phrase_analysis.PhraseAnalysis;
 
 import java.io.BufferedWriter;
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -46,6 +49,12 @@ public class Compiler {
         grammar_analysis.grammarAnalysis();
 
         errorTable.getErrorTable(errorBw);
+
+        //PrintStream ps = new PrintStream("midCode.txt");
+        //System.setOut(ps);
+        grammar_analysis.getCompUnit().visit();
+        //System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
+
         //fw.close();
         fr.close();
         errorBw.close();
