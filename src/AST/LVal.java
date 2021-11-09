@@ -78,4 +78,31 @@ public class LVal {
         }
         return null;
     }
+
+    public ForN getFourNExp(Integer regNow) {
+        ForN forN = null;
+        Integer indexArr1;
+        if (exps.isEmpty()) {
+            forN = new ForN(ident.getSymbol().getName(), regNow);
+        } else if (exps.size() == 1) {
+            ForN forN1 = exps.get(0).getFourNExp(regNow);
+            regNow = forN1.getRegNow();
+            forN = new ForN(ident.getSymbol().getName()+"[" + forN1.getAddr() + "]", regNow);
+        } else if (exps.size() == 2) {
+            ForN forN1 = exps.get(0).getFourNExp(regNow);
+            regNow = forN1.getRegNow();
+            System.out.print("t" + (++regNow) + " = " + forN1.getAddr() + " * ");
+            indexArr1 = regNow;
+            if (ident.getSymbol().getNode() instanceof ConstDef) {
+                System.out.println(((ConstDef) ident.getSymbol().getNode()).getArrSum().get(0));
+            } else if (ident.getSymbol().getNode() instanceof VarDef) {
+                System.out.println(((VarDef) ident.getSymbol().getNode()).getArrSum().get(0));
+            }
+            ForN forN2 = exps.get(1).getFourNExp(regNow);
+            regNow = forN2.getRegNow();
+            System.out.println("t" + (++regNow) + " = " + forN2.getAddr() + " + t" + indexArr1);
+            forN = new ForN(ident.getSymbol().getName() + "[t" + regNow + "]", regNow);
+        }
+        return forN;
+    }
 }

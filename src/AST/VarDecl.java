@@ -15,6 +15,9 @@ public class VarDecl {
     }
 
     public void visit() {
-
+        for (VarDef varDef : varDefs) {
+            System.out.print("var " + bType.getType() + " ");
+            varDef.visit();
+        }
     }
 }

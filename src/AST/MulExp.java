@@ -104,4 +104,23 @@ public class MulExp {
         }
         return ori;
     }
+
+    public ForN getFourNExp(Integer regNow) {
+        ForN left = unaryExps.get(0).getFourNExp(regNow);
+        if (ops.isEmpty()) {
+            return left;
+        } else {
+            for (int i = 0; i < ops.size(); i++) {
+                String op = ops.get(i);
+                regNow = left.getRegNow();
+                String addrLeft = left.getAddr();
+                ForN right = unaryExps.get(i + 1).getFourNExp(regNow);
+                String addrRight = right.getAddr();
+                regNow = right.getRegNow();
+                System.out.println("t" + (++regNow) + " = " + addrLeft + " " + op + " " + addrRight);
+                left = right;
+            }
+            return new ForN("t" + regNow, regNow);
+        }
+    }
 }

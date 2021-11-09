@@ -13,4 +13,8 @@ public class Number {
     public Integer getIntConst() {
         return IntConst;
     }
+
+    public ForN getForNExp(Integer regNow) {
+        return new ForN(IntConst.toString(), regNow);
+    }
 }

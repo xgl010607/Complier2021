@@ -93,4 +93,12 @@ public class UnaryExp {
         }
         return null;
     }
+
+    public ForN getFourNExp(Integer regNow) {
+        ForN forN = null;
+        if (primaryExp != null) {
+            forN = primaryExp.getFourNExp(regNow);
+        }
+        return forN;
+    }
 }

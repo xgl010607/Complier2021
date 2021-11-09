@@ -71,4 +71,16 @@ public class PrimaryExp {
         }
         return null;
     }
+
+    public ForN getFourNExp(Integer regNow) {
+        ForN forN = null;
+        if (number != null) {
+            forN = number.getForNExp(regNow);
+        } else if (lVal != null) {
+            forN = lVal.getFourNExp(regNow);
+        } else if (exp != null) {
+            forN = exp.getFourNExp(regNow);
+        }
+        return forN;
+    }
 }

@@ -1,5 +1,7 @@
 package AST;
 
+import java.util.ArrayList;
+
 public class Exp {
     private AddExp addExp;
     private String type;
@@ -41,5 +43,9 @@ public class Exp {
 
     public Integer getConstValue() {
         return addExp.getConstValue();
+    }
+
+    public ForN getFourNExp(Integer regNow) {
+        return addExp.getFourNExp(regNow);
     }
 }

@@ -48,6 +48,7 @@ public class Compiler {
         Grammar_Analysis grammar_analysis = new Grammar_Analysis(tokens, symbols, newLine, errorTable);
         grammar_analysis.grammarAnalysis();
 
+
         errorTable.getErrorTable(errorBw);
 
         //PrintStream ps = new PrintStream("midCode.txt");

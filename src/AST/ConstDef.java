@@ -62,9 +62,10 @@ public class ConstDef {
                 }
             } else if (constExps.size() == 2) {
                 for (int i = 0, k = 0; i < arrSum.get(0); i++) {
+                    Integer one = i * arrSum.get(0);
                     for (int j = 0; j < arrSum.get(1); j++) {
-                        System.out.println(ident.getSymbol().getName() + "[" + i + "]["
-                                + j + "] = " + arrValues.get(k++));
+                        System.out.println(ident.getSymbol().getName()
+                                + "[" + (one + j)  +  "] = " + arrValues.get(k++));
                     }
                 }
             }
